@@ -1,23 +1,46 @@
-# LinkedIn Scraper
+# LinkedIn Profile Scraper
 
-Welcome to the LinkedIn Scraper project! This notebook is designed for scraping LinkedIn to retrieve basic information about people, adaptable for specific use-cases.
+This project provides tools for scraping LinkedIn profiles to extract detailed information on education and professional experiences. It is intended for academic and research purposes, aiming to facilitate data gathering for analyses of career paths and educational backgrounds.
 
-## Prerequisites
+## Getting Started
 
-- **Python 3.6+** is required.
-- **Selenium**, **BeautifulSoup (bs4)**, **Pandas**, and **undetected_chromedriver** must be installed.
-- **Google Translator** and **langid** libraries for optional text translation.
-- **Chromedriver** must be installed in the same directory as this project for Selenium to interact with Google Chrome.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-## Setup
+1. **Clone the repository:**
 
-1. **Clone the Repository**: Clone this repo to your local machine.
-2. **Chromedriver**: Download and place `chromedriver` in the project directory. Ensure it matches your Chrome version.
-3. **Dataframe Setup**: Prepare a Pandas DataFrame named `df` with at least `FIRST_NAME` and `LAST_NAME` columns.
-4. **Configuration**: Enter your LinkedIn credentials in the provided placeholders within the code.
-5. **Run**: Execute the notebook cells sequentially to start scraping. Adjust the search parameters as needed for your specific use-case.
+```bash
+git clone https://github.com/LaFerraille/LinkedIn_scraper.git
+cd project
+```
 
-## Note
+2. **Install dependencies:**
 
-This project is for educational purposes. Be mindful of LinkedIn's terms of service regarding automated data collection.
+You can install the necessary Python packages using `pip`:
 
+`pip install -r requirements.txt`
+
+3. **Chromedriver:**
+Ensure you have ChromeDriver installed in the same directory as this project or in your PATH. Ensure that ChromeDriver match the version of your Google Chrome browser. Go this website to download the right version for your [Google Chrome version](https://chromedriver.chromium.org/downloads).
+
+## Usage
+
+To run the scraper, you need to provide the path to the Excel file containing LinkedIn profile first names and last names. The script supports optional arguments for filtering by school and specifying a starting year for experience entries.
+
+```bash
+python main.py --excel-path /path/to/your/excelfile.xlsx --username "your_username" --password "your_password" --schoolfilter "Optional School Name" --filter_from_year 2022 --headless
+```
+
+### Arguments 
+
+- `--excel-path` (required): The path to the Excel file with LinkedIn profile URLs and the names of the individuals.
+- `--username` (required): Your LinkedIn username or email to login.
+- `--password` (required): Your LinkedIn password for login.
+- `--schoolfilter` (optional): Filter profiles by a specific school name.
+- `--filter_from_year` (optional): Specify the starting year to filter experiences, only including experiences from this year onwards.
+- `--headless` (optional): Run the browser in headless mode. Use --headless to enable this mode.
+
+## Improvements 
+
+- Enhance the experience scraper to handle the multiple structure scenarios. Correct the internships labeling that is not perfectly implemented so far.
+- Implement asynchronous processing or multi-threading to handle multiple profiles concurrently, reducing total runtime.
+- Develop a GUI to facilitate non-technical users' operation of the script.
