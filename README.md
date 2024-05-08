@@ -41,6 +41,6 @@ python main.py --excel_path /path/to/your/excelfile.xlsx --username "your_userna
 
 ## Improvements 
 
-~~ - Enhance the experience scraper to handle the multiple structure scenarios. Correct the internships labeling that is not perfectly implemented so far.
+~ - Enhance the experience scraper to handle the multiple structure scenarios. Correct the internships labeling that is not perfectly implemented so far.
 - Implement asynchronous processing or multi-threading to handle multiple profiles concurrently, reducing total runtime.
 - Develop a GUI to facilitate non-technical users' operation of the script.
