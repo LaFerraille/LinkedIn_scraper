@@ -24,15 +24,15 @@ Ensure you have ChromeDriver installed in the same directory as this project or 
 
 ## Usage
 
-To run the scraper, you need to provide the path to the Excel file containing LinkedIn profile first names and last names. The script supports optional arguments for filtering by school and specifying a starting year for experience entries.
+To run the scraper, you need to provide the path to the Excel file containing LinkedIn profile first names and last names. The script supports optional arguments for filtering by school and specifying a starting year for experience entries. Please don't modify the size of the pop-up chrome screen while the code is running when you are not on headless mode.
 
 ```bash
-python main.py --excel-path /path/to/your/excelfile.xlsx --username "your_username" --password "your_password" --schoolfilter "Optional School Name" --filter_from_year 2022 --headless
+python main.py --excel_path /path/to/your/excelfile.xlsx --username "your_username" --password "your_password" --schoolfilter "Optional School Name" --filter_from_year 2022 --headless
 ```
 
 ### Arguments 
 
-- `--excel-path` (required): The path to the Excel file with LinkedIn profile URLs and the names of the individuals.
+- `--excel_path` (required): The path to the Excel file with LinkedIn profile URLs and the names of the individuals.
 - `--username` (required): Your LinkedIn username or email to login.
 - `--password` (required): Your LinkedIn password for login.
 - `--schoolfilter` (optional): Filter profiles by a specific school name.
@@ -41,6 +41,6 @@ python main.py --excel-path /path/to/your/excelfile.xlsx --username "your_userna
 
 ## Improvements 
 
-- Enhance the experience scraper to handle the multiple structure scenarios. Correct the internships labeling that is not perfectly implemented so far.
+~~ - Enhance the experience scraper to handle the multiple structure scenarios. Correct the internships labeling that is not perfectly implemented so far.
 - Implement asynchronous processing or multi-threading to handle multiple profiles concurrently, reducing total runtime.
 - Develop a GUI to facilitate non-technical users' operation of the script.

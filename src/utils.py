@@ -89,6 +89,23 @@ def convert_date_range_to_standard_format(date_range):
     else:
         return "Date range error"
 
+def is_date_range(text):
+
+    month_mapping = {
+        "janv": "01", "févr": "02", "mars": "03", "avr": "04",
+        "mai": "05", "juin": "06", "juil": "07", "août": "08",
+        "sept": "09", "oct": "10", "nov": "11", "déc": "12"
+    }
+
+    text = re.sub(r' · .*$', '', text)
+
+    # Return TRUE if text contains a date range
+    for month_abbr, month_num in month_mapping.items():
+        if month_abbr in text and re.search(r'\d{4}', text):
+            return True
+    
+    return False
+
 
 def clean_text(text, handling_dates=False):
     """
@@ -106,91 +123,109 @@ def clean_text(text, handling_dates=False):
         parts = [x for x in parts if not (x in seen or seen.add(x))]
         return ' '.join(parts)
 
+
 def is_internship(text):
-    """
-    Checks if the text contains keywords that indicate an internship.
-    """
-    keywords = {"intern", "internship", "stage", "summer", "off-cycle", "trainee", "assistant", "stagiaire"}
-    return any(keyword.lower() in text.lower() for keyword in keywords)
+    
+    # Check for standard internship keywords in the text
+    keywords = r'\b(?:intern|internship|stage|summer|off-cycle|trainee|stagiaire)\b'
+    if re.search(keywords, text.lower()):
+        return True
+
+    # Check date range for "6 mois" or "6 months" without preceding "an" or "year"
+    # pattern = r'·[^·]*?\b(6 mois|6 months)\b'
+    # if re.search(pattern, text.lower()):
+    #     # Check that there are no years or multiple months mentioned before "6 mois" or "6 months"
+    #     part_after_dot = re.split(r'·', text)[-1]  # Get the part after the last "·"
+    #     if not re.search(r'\b(1|2|3|4|5|7|8|9|10|11)\s*(mois|months)\b|\b\d+\s*(an|ans|year|years)\b', part_after_dot.lower()):
+    #         return True
+
+    return False
 
 def get_experiences(driver, filter_from_year=2022):
     experiences = []
-    temp_company = None  # To store company name when dates are detected in the company field
-    using_temp_company = False 
-    pattern = r'\b(janv|févr|mars|avr|mai|juin|juil|août|sept|oct|nov|déc)\.? \d{4} -'
-    i = 0
     try:
-        # Attempt to locate the experience section using more general selectors
         profile_section = driver.find_elements(By.XPATH, "//section[contains(@class, 'artdeco-card') and contains(@class, 'pv-profile-card')]")
         for section in profile_section:
             header = section.find_element(By.TAG_NAME, "h2").text
             if "Expérience" in header:
                 exp_items = section.find_elements(By.CSS_SELECTOR, "div > ul:first-of-type > li")
                 for item in exp_items:
-                    try:
-                        
-                        # Generalize selectors to handle different layouts
-                        title_div = item.find_element(By.CSS_SELECTOR, "div.display-flex.flex-column.full-width")
-                        job_title_elements = title_div.find_elements(By.CSS_SELECTOR, "div.t-bold span")
-                        company_elements = title_div.find_elements(By.CSS_SELECTOR, "span.t-14.t-normal")
+                    try : 
                         try : 
-                            company = clean_text(company_elements[0].text.split('·')[0].strip()) if not using_temp_company else temp_company
-                            job_title = clean_text(title_div.find_element(By.CSS_SELECTOR, "div.t-bold span").text.split('\t')[0].strip())
+                            main = item.find_element(By.CSS_SELECTOR, "div.display-flex.flex-column.full-width.align-self-center") 
                         except :
-                            raw_company = clean_text(' '.join([elem.text for elem in company_elements if elem.text.strip()])).split('·')[0].strip()
-                            if len(item.find_elements(By.CSS_SELECTOR, "li")) > 0:
-                                job_title = title_div.find_element(By.CSS_SELECTOR, "div.t-bold span").text.split('\t')[0].strip()
-                                company = raw_company.split('·')[0] if not using_temp_company else temp_company
-                            else : 
-                                job_title = clean_text(' '.join([elem.text for elem in job_title_elements if elem.text.strip()]))
-                                company = re.sub(pattern+r".*\'", '', raw_company).strip()
-
-                        date_range = title_div.find_elements(By.CSS_SELECTOR, "span.t-14.t-normal.t-black--light")[0].text
-                        location_elements = title_div.find_elements(By.CSS_SELECTOR, "span.t-14.t-normal.t-black--light")
-                        if len(location_elements) > 1:
-                            location = clean_text(location_elements[1].text.split('·')[0])
-                        else:
-                            location = "Unknown location"  # Default to unknown if no location is present
-
-                        internship = is_internship(job_title + " " + company)
-                        pattern = r'\b(janv|févr|mars|avr|mai|juin|juil|août|sept|oct|nov|déc)\.? \d{4} -|CDD|CDI'
-                        if re.search(pattern, company):
-                            if i == 0:
-                                using_temp_company = True
-                                temp_company = job_title
-                                i += 1
-                                continue
-                            else : 
-                                company = temp_company
-                        else:
-                            using_temp_company = False
-
-                        # Convert and filter dates
-                        date_range = convert_date_range_to_standard_format(date_range)
-                        if date_range.split(' - ')[-1] == "Unknown date":
-                            end_year = datetime.now().year
-                        else : 
-                            end_year = int(date_range.split(' - ')[-1].split('/')[2])
-                        if end_year < filter_from_year:
                             continue
+                        pattern = r'\d+\s(ans?\s)\d?\s?(months?)?'
+                        width = item.size['width']
+                        p = main.find_element(By.CSS_SELECTOR, "span.t-14.t-normal").text
+                        match = re.search(pattern, p)
+                        if match:
+                            # Extract company name
+                            company_name = clean_text(main.find_element(By.CSS_SELECTOR, "div.t-bold span").text) 
+                            p = main.find_element(By.CSS_SELECTOR, "span.t-14.t-normal").text
+                            try :
+                                location = clean_text(main.find_element(By.CSS_SELECTOR, "span.t-14.t-normal.t-black--light").text.split('·')[0].strip())
+                                if is_date_range(location):
+                                    location = "Unknown location"
+                            except :
+                                location = "Unknown location"                       
+                            # Iterate over each job role listed under this company
+                            roles = main.find_elements(By.XPATH, "div/ul[1]/li")
+                            for role in roles:
+                                title = role.find_element(By.CSS_SELECTOR, "div.t-bold span").text
+                                poste = role.find_element(By.CSS_SELECTOR, "span.t-14.t-normal").text
+                                if is_date_range(poste):
+                                    poste = "Unknown poste"
+                                date_range = role.find_element(By.CSS_SELECTOR, "span.t-14.t-normal.t-black--light").text
+                                location_elements = role.find_elements(By.CSS_SELECTOR, "span.t-14.t-normal.t-black--light")
+                                if len(location_elements) > 1 and location == "Unknown location":
+                                    location = clean_text(location_elements[-1].text.split('·')[0].strip()) 
+                                    if is_date_range(location):
+                                        location = "Unknown location"
+                                internship = is_internship(title + " " + poste)
+                                date_range = convert_date_range_to_standard_format(date_range)
+                                end_year = int(date_range.split(' - ')[-1].split('/')[2]) if date_range.split(' - ')[-1] != "Unknown date" else datetime.now().year
+                                if end_year >= filter_from_year:
+                                    experiences.append({
+                                        'title': clean_text(title),
+                                        'company': company_name,
+                                        'date_range': date_range,
+                                        'location': location,
+                                        'internship': internship
+                                    })
 
+                        elif width == 700: # Assuming that you are full height*width window
+                            continue
                     
-                        experiences.append({
-                            'title': job_title,
-                            'company': company,
-                            'date_range': date_range,
-                            'location': location,
-                            'internship': internship
-                        })
+                        else:
+                            # Single job entry, handle as second layout
+                            job_title = main.find_element(By.CSS_SELECTOR, "div.t-bold span").text
+                            company_elements = item.find_elements(By.CSS_SELECTOR, "span.t-14.t-normal")
+                            company = company_elements[0].text.split('·')[0].strip()
+                            date_range = item.find_element(By.CSS_SELECTOR, "span.t-14.t-normal.t-black--light").text
+                            location_elements = item.find_elements(By.CSS_SELECTOR, "span.t-14.t-normal.t-black--light")
+                            location = clean_text(location_elements[1].text.split('·')[0].strip()) if len(location_elements) > 1 else "Unknown location"
+                            internship = is_internship(job_title + " " + company_elements[0].text + " " + date_range)
+                            date_range = convert_date_range_to_standard_format(date_range)
+                            end_year = int(date_range.split(' - ')[-1].split('/')[2]) if date_range.split(' - ')[-1] != "Unknown date" else datetime.now().year
+                            if end_year >= filter_from_year:
+                                experiences.append({
+                                    'title': clean_text(job_title),
+                                    'company': clean_text(company),
+                                    'date_range': date_range,
+                                    'location': location,
+                                    'internship': internship
+                                })
 
+                    except :
+                        print("Error getting experience")
 
-                    except Exception as exp_err:
-                        pass
-
+        
     except Exception as e:
-        print(f"Error getting experiences: {e}")
+        print(f"Error getting experiences")
                 
     return experiences
+
 
 
 def get_education(driver):

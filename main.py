@@ -39,7 +39,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Process individuals from an Excel file.")
-    parser.add_argument('excel_path', type=str, help='Path to the Excel file containing the data.')
+    parser.add_argument('--excel_path', type=str, help='Path to the Excel file containing the data.')
     parser.add_argument('--username', type=str, required=True, help='Username for login.')
     parser.add_argument('--password', type=str, required=True, help='Password for login.')
     parser.add_argument('--schoolfilter', type=str, default=None, help='Optional filter for specific school in education data.')
